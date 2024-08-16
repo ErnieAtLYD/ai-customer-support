@@ -12,7 +12,7 @@ const ChatInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
 
-  const sendMessage: React.FC = () => {
+  const sendMessage = () => {
     const newMessage = {
       id: messages.length + 1,
       text: message,
