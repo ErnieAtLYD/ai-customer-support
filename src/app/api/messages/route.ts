@@ -22,36 +22,41 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { content } = await request.json()
-  
-  const newMessage: Message = {
-    id: Date.now().toString(),
-    content: content,
-    sender: 'user',
-    timestamp: Date.now(),
-  }
-  
-  // Call OpenAI API
-  const aiResponse = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
-    messages: [
-      { role: "system", content: "You are a helpful assistant." },
-      { role: "user", content: content }
-    ],
-  })
+  try {
+    const { content } = await request.json()
 
-  const aiMessage: Message = {
-    id: (Date.now() + 1).toString(),
-    content: aiResponse.choices[0].message.content || "Sorry, I couldn't generate a response.",
-    sender: 'ai',
-    timestamp: Date.now() + 1,
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      content: content,
+      sender: 'user',
+      timestamp: Date.now(),
+    }
+
+    // Call OpenAI API
+    const aiResponse = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        { role: "user", content: content }
+      ],
+    })
+
+    const aiMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      content: aiResponse.choices[0].message.content || "Sorry, I couldn't generate a response.",
+      sender: 'ai',
+      timestamp: Date.now() + 1,
+    }
+
+    initialMessages.push(newMessage, aiMessage)
+
+    const response: ApiResponse<Message> = {
+      data: aiMessage,
+    }
+
+    return NextResponse.json(response)
+  } catch (error) {
+    console.error('Error processing message:', error);
+    return NextResponse.json({ error: 'Failed to process message' }, { status: 500 });
   }
-  
-  initialMessages.push(newMessage, aiMessage)
-  
-  const response: ApiResponse<Message> = {
-    data: aiMessage,
-  }
-  
-  return NextResponse.json(response)
 }

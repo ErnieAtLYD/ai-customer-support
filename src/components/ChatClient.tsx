@@ -40,19 +40,34 @@ const ChatClient = () => {
   const sendMessage: SendMessageFunction = async (content) => {
     try {
       setLoading(true);
+
+      // Add user's message immediately
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        content,
+        sender: 'user',
+        timestamp: Date.now(),
+      };
+      setMessages((prevMessages) => [...prevMessages, userMessage]);
+
+
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content }),
       });
       const data = await response.json();
-      if (data.success) {
+      if (response.ok) {
         setMessages((prevMessages) => [...prevMessages, data.data]);
       } else {
-        console.error('Failed to send message:', data.error);
+        console.error('Failed to send message:', data.error || 'Unknown error');
+        // Optionally set an error state here
+        // setError(data.error || 'Failed to send message. Please try again.');
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Error sending message:', error instanceof Error ? error.message : String(error));
+      // Optionally set an error state here
+      // setError('Failed to send message. Please try again.');
     } finally {
       setLoading(false);
     }
