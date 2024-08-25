@@ -1,54 +1,35 @@
-"use client"
+// app/components/ChatInterface.tsx
+import { Suspense } from 'react'
+import { MessageDisplay } from './MessageDisplay'
+import { MessageInput } from './MessageInput'
+import { Loading } from './Loading'
+import { Message, ChatSession, ApiResponse } from '@/src/types'
 
-import React, { useState } from "react";
-
-interface Message {
-  id: number;
-  text: string;
-  timestamp: string;
-}
-
-const ChatInterface: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [message, setMessage] = useState("");
-
-  const sendMessage = () => {
-    const newMessage = {
-      id: messages.length + 1,
-      text: message,
-      timestamp: new Date().toISOString(),
-    };
-    setMessages([...messages, newMessage]);
-    setMessage("");
-  };
+export const ChatInterface = async () => {
+  const messages = await getInitialMessages()
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="flex-grow p-4 overflow-auto">
-        {messages.map((msg) => (
-          <div key={msg.id}>
-            <span>{msg.text}</span>
-            <span>{msg.timestamp}</span>
-          </div>
-        ))}
-      </div>
-      <div className="p-4 border-t">
-        <input
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="w-full p-2 border rounded"
-          placeholder="Type your message..."
-        />
-        <button
-          onClick={sendMessage}
-          className="mt-2 p-2 bg-blue-500 text-white rounded"
-        >
-          Send
-        </button>
-      </div>
+      <Suspense fallback={<Loading />}>
+        <MessageDisplay messages={messages} />
+      </Suspense>
+      <MessageInput onSendMessage={sendMessage} />
     </div>
-  );
-};
+  )
+}
 
-export default ChatInterface;
+async function getInitialMessages(): Promise<Message[]> {
+  const res = await fetch('/api/messages', { next: { revalidate: 0 } })
+  if (!res.ok) throw new Error('Failed to fetch messages')
+  const response: ApiResponse<Message[]> = await res.json()
+  return response.data
+}
+
+async function sendMessage(content: string): Promise<void> {
+  const res = await fetch('/api/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content }),
+  })
+  if (!res.ok) throw new Error('Failed to send message')
+}
