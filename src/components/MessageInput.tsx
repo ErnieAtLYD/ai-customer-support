@@ -2,16 +2,22 @@
 'use client'
 
 import { useState } from 'react'
-import { MessageInputProps } from '@/src/types'
+import { MessageInputProps } from '../types'
 
-export const MessageInput = ({ onSendMessage, disabled = false }: MessageInputProps) => {
+export const MessageInput: React.FC<MessageInputProps> = () => {
   const [message, setMessage] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (message.trim() && !disabled) {
-      await onSendMessage(message)
-      setMessage('')
+    if (message.trim()) {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: message }),
+      })
+      if (response.ok) {
+        setMessage('')
+      }
     }
   }
 
@@ -24,12 +30,10 @@ export const MessageInput = ({ onSendMessage, disabled = false }: MessageInputPr
           onChange={(e) => setMessage(e.target.value)}
           className="flex-1 p-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Type your message..."
-          disabled={disabled}
         />
         <button
           type="submit"
-          className="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400"
-          disabled={disabled}
+          className="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           Send
         </button>

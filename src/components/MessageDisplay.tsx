@@ -1,4 +1,6 @@
 // app/components/MessageDisplay.tsx
+'use client'
+
 import { MessageDisplayProps, Message } from '@/src/types'
 
 export const MessageDisplay = ({ messages }: MessageDisplayProps) => {
