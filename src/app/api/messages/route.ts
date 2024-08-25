@@ -1,6 +1,12 @@
 // app/api/messages/route.ts
 import { NextResponse } from 'next/server'
 import { Message, ApiResponse } from '@/src/types'
+import OpenAI from 'openai'
+
+// Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
 // Dummy data for initial messages
 const initialMessages: Message[] = [
@@ -18,8 +24,6 @@ export async function GET() {
 export async function POST(request: Request) {
   const { content } = await request.json()
   
-  // In a real application, you would save this message to a database
-  // and potentially process it through an AI model
   const newMessage: Message = {
     id: Date.now().toString(),
     content: content,
@@ -27,18 +31,26 @@ export async function POST(request: Request) {
     timestamp: Date.now(),
   }
   
-  // Simulate AI response
-  const aiResponse: Message = {
+  // Call OpenAI API
+  const aiResponse = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [
+      { role: "system", content: "You are a helpful assistant." },
+      { role: "user", content: content }
+    ],
+  })
+
+  const aiMessage: Message = {
     id: (Date.now() + 1).toString(),
-    content: `Thank you for your message: "${content}". How can I help you further?`,
+    content: aiResponse.choices[0].message.content || "Sorry, I couldn't generate a response.",
     sender: 'ai',
     timestamp: Date.now() + 1,
   }
   
-  initialMessages.push(newMessage, aiResponse)
+  initialMessages.push(newMessage, aiMessage)
   
   const response: ApiResponse<Message> = {
-    data: aiResponse,
+    data: aiMessage,
   }
   
   return NextResponse.json(response)

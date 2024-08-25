@@ -1,16 +1,20 @@
 // app/page.tsx
-import { ChatInterface } from '@/src/components/ChatInterface'
-import type { Metadata } from 'next'
+
+import React from 'react';
+import { Metadata } from 'next';
+import ChatInterface from '@/src/components/ChatInterface';
 
 export const metadata: Metadata = {
-  title: 'AI Customer Support',
-  description: 'Chat with our AI-powered customer support assistant',
-}
+  title: 'AI Customer Support Chat',
+  description: 'An AI-powered customer support chat interface',
+};
 
-export default function Home() {
+const Home = () => {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main className="min-h-screen bg-gray-100">
       <ChatInterface />
     </main>
-  )
-}
+  );
+};
+
+export default Home;
