@@ -11,6 +11,9 @@ const nextConfig = {
       // Add custom webpack configurations here if needed
       return config;
     },
+    env: {
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    },
   };
   
   export default nextConfig;

@@ -1,30 +1,28 @@
 // src/types/index.ts
 
 export interface Message {
-    id: string;
-    content: string;
-    sender: 'user' | 'ai';
-    timestamp?: number;
-  }
+  id: string;
+  content: string;
+  sender: 'user' | 'ai';
+  timestamp: Date; // Changed from number to Date
+}
   
-  export interface User {
-    id: string;
-    name: string;
-    email: string;
-  }
+export interface User {
+  id: string;
+  name: string;
+}
+
+export interface ChatSession {
+  id: string;
+  messages: Message[];
+  user: User;
+}
   
-  export interface ChatSession {
-    id: string;
-    userId: string;
-    messages: Message[];
-    createdAt: number;
-    updatedAt: number;
-  }
-  
-  export interface ApiResponse<T> {
-    data: T;
-    error?: string;
-  }
+export interface ApiResponse<T = any> { // Made generic with a default type
+  success: boolean;
+  data?: T;
+  error?: string;
+}
   
   export type SendMessageFunction = (content: string) => Promise<void>;
   
