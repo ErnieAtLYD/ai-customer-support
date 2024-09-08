@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import { Message, ApiResponse } from '@/src/types';
 import openai from '@/src/lib/openai';
+import logger from '@/src/lib/logger';
 
 export async function GET() {
   const response: ApiResponse<Message[]> = {
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error in POST /api/messages:', error);
+    logger.error(`Error in POST /api/messages: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json({
       success: false,
       error: 'An error occurred while processing your request.',
