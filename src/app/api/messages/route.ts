@@ -1,62 +1,59 @@
-// app/api/messages/route.ts
-import { NextResponse } from 'next/server'
-import { Message, ApiResponse } from '@/src/types'
-import OpenAI from 'openai'
+// /src/api/api/messages/route.ts
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-
-// Dummy data for initial messages
-const initialMessages: Message[] = [
-  { id: '1', content: 'Hello! How can I assist you today?', sender: 'ai', timestamp: Date.now() },
-]
+import { NextResponse } from 'next/server';
+import { Message, ApiResponse } from '@/src/types';
+import openai from '@/src/lib/openai';
 
 export async function GET() {
-  // In a real application, you would fetch messages from a database
   const response: ApiResponse<Message[]> = {
-    data: initialMessages,
-  }
-  return NextResponse.json(response)
+    success: true,
+    data: [
+      {
+        id: '1',
+        content: 'Hello! How can I help you today?',
+        sender: 'ai',
+        timestamp: new Date(),
+      },
+    ],
+  };
+  return NextResponse.json(response);
 }
 
 export async function POST(request: Request) {
   try {
-    const { content } = await request.json()
+    const body = await request.json();
+    const { content } = body;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      content: content,
-      sender: 'user',
-      timestamp: Date.now(),
+    if (!content) {
+      return NextResponse.json({
+        success: false,
+        error: 'Message content is required',
+      } as ApiResponse, { status: 400 });
     }
 
-    // Call OpenAI API
-    const aiResponse = await openai.chat.completions.create({
+    const chatCompletion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "You are a helpful assistant." },
-        { role: "user", content: content }
-      ],
-    })
+      messages: [{"role": "user", "content": content}],
+    });
 
     const aiMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      content: aiResponse.choices[0].message.content || "Sorry, I couldn't generate a response.",
+      id: Date.now().toString(),
+      content: chatCompletion.choices[0].message.content || 'Sorry, I couldn\'t generate a response.',
       sender: 'ai',
-      timestamp: Date.now() + 1,
-    }
-
-    initialMessages.push(newMessage, aiMessage)
+      timestamp: new Date(),
+    };
 
     const response: ApiResponse<Message> = {
+      success: true,
       data: aiMessage,
-    }
+    };
 
-    return NextResponse.json(response)
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Error processing message:', error);
-    return NextResponse.json({ error: 'Failed to process message' }, { status: 500 });
+    console.error('Error in POST /api/messages:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'An error occurred while processing your request.',
+    } as ApiResponse, { status: 500 });
   }
 }
